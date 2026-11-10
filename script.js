@@ -124,7 +124,7 @@ function htmlFolha(d, o = {}) {
   const ass = o.assinatura ? `<img src="${esc(o.assinatura)}" alt="Assinatura">` : '';
   const quando = o.assinadoEm ? `Assinado eletronicamente em ${dataBr(o.assinadoEm, true)}` : 'Data: ____/____/______';
   return `<article class="folha ${o.livre ? 'livre' : ''}">
-    <div class="fl-topo"><img src="assets/logo.jpg" alt=""><div><b>${esc(E.RAZAO_SOCIAL || 'Selecione a empresa')}</b>
+    <div class="fl-topo"><div><b>${esc(E.RAZAO_SOCIAL || 'Selecione a empresa')}</b>
       <small>${E.CNPJ ? 'CNPJ ' + esc(E.CNPJ) : ''}${E.ENDERECO ? '<br>' + esc(E.ENDERECO) : ''}<br>${[E.TELEFONE, E.EMAIL].filter(Boolean).map(esc).join(' | ')}</small></div></div>
     <div class="fl-corpo">
       ${d.STATUS === 'CANCELADO' ? '<div style="text-align:center"><span class="marca-dagua">CANCELADO</span></div>' : ''}
@@ -644,7 +644,7 @@ function formEmpresa(emp) {
     <label>CNPJ<input name="CNPJ" required placeholder="00.000.000/0000-00" value="${esc(v.CNPJ)}"></label>
     <label>Endereço<input name="ENDERECO" value="${esc(v.ENDERECO)}"></label>
     <div class="linha-campos"><label>Telefone<input name="TELEFONE" value="${esc(v.TELEFONE)}"></label><label>E-mail<input name="EMAIL" value="${esc(v.EMAIL)}"></label></div>
-    <label>ID do arquivo da logo no Drive (opcional, usado no PDF)<input name="LOGO_FILE_ID" value="${esc(v.LOGO_FILE_ID)}"></label>
+    <label>ID do papel timbrado no Drive (opcional; vazio = timbrado padrão Vegas)<input name="LOGO_FILE_ID" value="${esc(v.LOGO_FILE_ID)}"></label>
     <div class="linha-campos"><label>Empresa padrão<select name="PADRAO"><option value="NAO">Não</option><option value="SIM">Sim</option></select></label>
       <label>Situação<select name="ATIVA"><option value="SIM">Ativa</option><option value="NAO">Inativa</option></select></label></div>
     <button class="btn azul">Salvar empresa</button></form>`);

@@ -537,16 +537,6 @@ function visaoRecibo_(r, completo) {
   };
 }
 
-function logoBase64_(fileId) {
-  if (fileId) {
-    try {
-      const b = DriveApp.getFileById(fileId).getBlob();
-      return 'data:' + b.getContentType() + ';base64,' + Utilities.base64Encode(b.getBytes());
-    } catch (e) { console.error('Logo não acessível: ' + e); }
-  }
-  return LOGO_PADRAO;
-}
-
 function htmlPdf_(v, a) {
   const e = esc_, E = v.EMPRESA;
   const dataHora = Utilities.formatDate(a.dataHora, APP.TZ, "dd/MM/yyyy 'às' HH:mm:ss");
@@ -558,33 +548,59 @@ function htmlPdf_(v, a) {
   if (v.OBSERVACOES) det.push(['Observações', v.OBSERVACOES]);
   det.push(['Valor pago', brl_(v.VALOR)]);
   return '<html><head><meta charset="utf-8"><style>' +
-    '@page{size:A4;margin:14mm 16mm}body{font-family:Arial,Helvetica,sans-serif;color:#171A20;font-size:11pt;margin:0}' +
-    '.top{border-bottom:4px solid #168BFF;color:#08090C}.top td{padding:0 12px 10px 0;vertical-align:middle}.top img{width:78px;height:72px}' +
-    '.rz{font-size:13pt;font-weight:bold;letter-spacing:.5px}.sm{font-size:8.5pt;color:#454a52;line-height:1.45}' +
-    'h1{font-size:17pt;letter-spacing:3px;text-align:center;margin:22px 0 4px}' +
-    '.prot{text-align:center;font-size:8.5pt;color:#737982;margin-bottom:18px}' +
-    '.corpo{font-size:11.5pt;line-height:1.6;text-align:justify;margin:0 0 16px}' +
-    'table.d{width:100%;border-collapse:collapse;margin-bottom:14px}table.d td{border-bottom:1px solid #C7CBD1;padding:7px 6px;font-size:10pt}' +
-    'table.d td.k{width:34%;color:#737982}table.d tr.t td{font-weight:bold;font-size:12pt;border-bottom:2px solid #171A20}' +
-    '.ass{text-align:center;margin-top:22px}.ass img{height:90px;max-width:320px}.linha{border-top:1px solid #171A20;width:70%;margin:0 auto;padding-top:5px;font-weight:bold}' +
-    '.aud{margin-top:22px;border:1px solid #C7CBD1;padding:9px 11px;font-size:7.8pt;color:#454a52;line-height:1.5;word-break:break-all}' +
-    '.rod{font-size:9pt;color:#454a52;text-align:center;margin-top:12px}</style></head><body>' +
-    '<table class="top" width="100%" cellspacing="0"><tr><td width="90"><img src="' + logoBase64_(v.LOGO_FILE_ID) + '"></td><td>' +
-    '<div class="rz">' + e(E.RAZAO_SOCIAL) + '</div><div class="sm">CNPJ ' + e(E.CNPJ) + (E.ENDERECO ? '<br>' + e(E.ENDERECO) : '') +
-    '<br>' + [E.TELEFONE, E.EMAIL].filter(Boolean).map(e).join(' &nbsp;|&nbsp; ') + '</div></td></tr></table>' +
+    '@page{size:A4;margin:0}html,body{margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;color:#171A20;font-size:10.5pt}' +
+    '.timb{position:absolute;top:0;left:0;width:210mm;height:297mm}' +
+    '.pg{position:absolute;top:46mm;left:20mm;width:170mm}' +
+    '.top{text-align:center;border-bottom:1px solid #C7CBD1;padding-bottom:5px}' +
+    '.rz{font-size:11.5pt;font-weight:bold;letter-spacing:.4px}.sm{font-size:8pt;color:#454a52;line-height:1.4}' +
+    'h1{font-size:15pt;letter-spacing:3px;text-align:center;margin:12px 0 2px}' +
+    '.prot{text-align:center;font-size:8pt;color:#737982;margin-bottom:10px}' +
+    '.corpo{font-size:10.5pt;line-height:1.5;text-align:justify;margin:0 0 10px}' +
+    'table.d{width:100%;border-collapse:collapse;margin-bottom:8px}table.d td{border-bottom:1px solid #C7CBD1;padding:4px 5px;font-size:9.5pt}' +
+    'table.d td.k{width:34%;color:#737982}table.d tr.t td{font-weight:bold;font-size:11pt;border-bottom:2px solid #171A20}' +
+    '.ass{text-align:center;margin-top:10px}.ass img{height:62px;max-width:280px}.linha{border-top:1px solid #171A20;width:68%;margin:0 auto;padding-top:3px;font-weight:bold}' +
+    '.aud{margin-top:8px;border:1px solid #C7CBD1;padding:5px 8px;font-size:6.8pt;color:#454a52;line-height:1.4;word-break:break-all;background:#fff}' +
+    '.rod{font-size:8.5pt;color:#454a52;text-align:center;margin:6px 0 0}</style></head><body>' +
+    '<img class="timb" src="' + timbrado_(v.LOGO_FILE_ID) + '">' +
+    '<div class="pg"><div class="top"><div class="rz">' + e(E.RAZAO_SOCIAL) + '</div><div class="sm">CNPJ ' + e(E.CNPJ) + (E.ENDERECO ? ' &nbsp;|&nbsp; ' + e(E.ENDERECO) : '') +
+    '<br>' + [E.TELEFONE, E.EMAIL].filter(Boolean).map(e).join(' &nbsp;|&nbsp; ') + '</div></div>' +
     '<h1>RECIBO DE PAGAMENTO</h1><div class="prot">Protocolo ' + e(v.PROTOCOLO) + ' &nbsp;|&nbsp; ' + e(v.TIPO_PAGAMENTO) + '</div>' +
     '<p class="corpo">Eu, <b>' + e(v.NOME_FUNCIONARIO) + '</b>, CPF <b>' + e(v.CPF) + '</b>, declaro que recebi de <b>' + e(E.RAZAO_SOCIAL) +
     '</b> a quantia de <b>' + brl_(v.VALOR) + '</b> (' + e(v.VALOR_EXTENSO) + '), referente a ' + e(v.DESCRICAO) + '.</p>' +
     '<table class="d">' + det.map((x, i) => '<tr' + (i === det.length - 1 ? ' class="t"' : '') + '><td class="k">' + e(x[0]) + '</td><td>' + e(x[1]) + '</td></tr>').join('') + '</table>' +
-    '<div class="ass"><img src="' + a.assinatura + '"><div class="linha">' + e(v.NOME_FUNCIONARIO) + '</div>' +
+    '<div class="ass">' + (a.assinatura ? '<img src="' + a.assinatura + '">' : '<div style="height:62px"></div>') + '<div class="linha">' + e(v.NOME_FUNCIONARIO) + '</div>' +
     '<div class="sm">Assinado eletronicamente em ' + dataHora + ' (horário de Brasília, registrado pelo servidor)</div></div>' +
     '<p class="rod">' + e(configMapa_().TEXTO_RODAPE) + '</p>' +
-    '<div class="aud"><b>Registro de autenticidade</b><br>Protocolo: ' + e(v.PROTOCOLO) + ' &nbsp;|&nbsp; ID do documento: ' + e(v.ID_RECIBO) +
+    '<div class="aud"><b>Registro de autenticidade</b> &nbsp;|&nbsp; Protocolo ' + e(v.PROTOCOLO) + ' &nbsp;|&nbsp; ID ' + e(v.ID_RECIBO) +
     '<br>Emitido em ' + dataBr_(v.DATA_EMISSAO, true) + ' &nbsp;|&nbsp; Assinado em ' + dataHora +
-    '<br>Declaração aceita pelo funcionário: "' + e(configMapa_().TEXTO_DECLARACAO) + '"' +
+    '<br>Declaração aceita: "' + e(configMapa_().TEXTO_DECLARACAO) + '"' +
     '<br>SHA-256 do conteúdo + assinatura: ' + a.hashConteudo +
-    '<br>Assinatura eletrônica simples (manuscrita digitalizada), vinculada ao link individual e à trilha de auditoria. Não se trata de certificado ICP-Brasil.</div>' +
-    '</body></html>';
+    '<br>Assinatura eletrônica simples (manuscrita digitalizada) vinculada ao link individual e à trilha de auditoria. Não é certificado ICP-Brasil.</div>' +
+    '</div></body></html>';
+}
+
+function timbrado_(fileId) {
+  if (fileId) {
+    try {
+      const b = DriveApp.getFileById(fileId).getBlob();
+      return 'data:' + b.getContentType() + ';base64,' + Utilities.base64Encode(b.getBytes());
+    } catch (e) { console.error('Papel timbrado não acessível: ' + e); }
+  }
+  return TIMBRADO_PADRAO;
+}
+
+function testeTimbrado() {
+  const v = {
+    ID_RECIBO: 'TESTE', PROTOCOLO: 'VG0000-TESTE', NOME_FUNCIONARIO: 'FUNCIONÁRIO DE TESTE', CPF: '000.000.000-00', POSTO: 'SEDE',
+    TIPO_PAGAMENTO: 'Auxílio-alimentação', DESCRICAO: 'auxílio alimentação', VALOR: 280, VALOR_EXTENSO: extenso_(280),
+    QUANTIDADE_DIAS: 7, VALOR_DIARIO: 40, PERIODO: '05 a 13/10/2026', DATA_PAGAMENTO: new Date().toISOString(),
+    DATA_EMISSAO: new Date().toISOString(), FORMA_PAGAMENTO: 'PIX', IDENTIFICACAO_TRANSACAO: 'Chave (CPF) 000.000.000-00',
+    OBSERVACOES: '', MATRICULA: '123', LOGO_FILE_ID: '',
+    EMPRESA: { RAZAO_SOCIAL: EMPRESAS_PADRAO[0][0], CNPJ: EMPRESAS_PADRAO[0][1], ENDERECO: EMPRESAS_PADRAO[0][2], TELEFONE: EMPRESAS_PADRAO[0][3], EMAIL: EMPRESAS_PADRAO[0][4] }
+  };
+  const html = htmlPdf_(v, { assinatura: '', dataHora: new Date(), hashConteudo: 'TESTE' });
+  const f = pastaRaiz_(APP.PASTA_RECIBOS).createFile(Utilities.newBlob(html, 'text/html', 't.html').getAs('application/pdf').setName('TESTE TIMBRADO.pdf'));
+  Logger.log('Abra e confira: ' + f.getUrl());
 }
 
 /* ============ DRIVE ============ */

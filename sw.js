@@ -1,5 +1,5 @@
-const CACHE = 'recibos-vegas-v1';
-const ARQUIVOS = ['./', 'index.html', 'style.css', 'script.js', 'assets/logo.jpg', 'assets/fundo.jpg', 'assets/icons/icon-192.png'];
+const CACHE = 'recibos-vegas-v2';
+const ARQUIVOS = ['./', 'index.html', 'style.css', 'script.js', 'assets/logo.jpg', 'assets/fundo.jpg', 'assets/icons/icon-192.png', 'assets/timbrado-topo.jpg', 'assets/timbrado-rodape.jpg', 'assets/timbrado-marca.jpg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)));
