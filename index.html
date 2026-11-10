@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#08090C">
+<title>Recibos Digitais — Vegas</title>
+<link rel="icon" href="assets/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="fundo" aria-hidden="true"></div>
+
+<!-- LOGIN -->
+<section id="v-login" class="view centro" hidden>
+  <form class="vidro login" id="f-login" autocomplete="on">
+    <img src="assets/logo.jpg" alt="Vegas Vigilância e Segurança" class="logo-login">
+    <h1 class="titulo">Recibos Digitais — Vegas</h1>
+    <p class="sub">Gestão de pagamentos, recebimentos e assinaturas digitais.</p>
+    <label>Usuário<input name="login" required autocomplete="username"></label>
+    <label>Senha<input name="senha" type="password" required autocomplete="current-password"></label>
+    <button class="btn prata" type="submit">Entrar</button>
+    <p class="erro" id="login-erro" role="alert"></p>
+  </form>
+</section>
+
+<!-- PAINEL RH -->
+<section id="v-app" class="view" hidden>
+  <header class="topo">
+    <div class="marca"><img src="assets/logo.jpg" alt=""><div><strong>Recibos Digitais — Vegas</strong><span>Gestão de pagamentos, recebimentos e assinaturas digitais.</span></div></div>
+    <div class="usuario"><span id="u-nome"></span><button class="btn fino" id="b-senha">Trocar senha</button><button class="btn fino" id="b-sair">Sair</button></div>
+  </header>
+  <nav class="menu" id="menu">
+    <button data-tela="painel" class="ativo">Painel</button>
+    <button data-tela="novo" data-perm="recibo.criar">Novo recibo</button>
+    <button data-tela="lista" data-filtro="">Recibos enviados</button>
+    <button data-tela="lista" data-filtro="PENDENTE">Aguardando assinatura</button>
+    <button data-tela="lista" data-filtro="ASSINADO">Recibos assinados</button>
+    <button data-tela="funcionarios">Funcionários</button>
+    <button data-tela="relatorios">Relatórios</button>
+    <button data-tela="config" data-perm="config.editar">Configurações</button>
+  </nav>
+
+  <main class="conteudo">
+    <!-- Painel -->
+    <div class="tela" id="t-painel">
+      <div class="cards" id="cards"></div>
+      <div class="grade2">
+        <div class="vidro bloco"><h3>Recibos por mês</h3><div id="g-mes" class="grafico"></div></div>
+        <div class="vidro bloco"><h3>Por tipo de pagamento</h3><div id="g-tipo" class="grafico"></div></div>
+        <div class="vidro bloco"><h3>Pendentes x assinados</h3><div id="g-status" class="grafico"></div></div>
+        <div class="vidro bloco"><h3>Valores pagos por mês</h3><div id="g-valor" class="grafico"></div></div>
+      </div>
+      <div class="vidro bloco"><h3>Últimos recibos enviados</h3><div id="ultimos"></div></div>
+    </div>
+
+    <!-- Novo recibo -->
+    <div class="tela" id="t-novo" hidden>
+      <div class="novo">
+        <form class="vidro bloco" id="f-recibo" novalidate>
+          <h3>Empresa emissora</h3>
+          <label>Empresa<select name="ID_EMPRESA" id="sel-empresa" required></select></label>
+
+          <h3>Funcionário</h3>
+          <div class="linha-campos">
+            <label class="cresce">Buscar por nome, CPF ou matrícula
+              <input id="busca-func" list="dl-func" placeholder="Digite para buscar" autocomplete="off"></label>
+            <button type="button" class="btn fino" id="b-novo-func">Cadastrar novo</button>
+          </div>
+          <datalist id="dl-func"></datalist>
+          <input type="hidden" name="ID_FUNCIONARIO">
+          <div class="func-sel" id="func-sel">Nenhum funcionário selecionado.</div>
+          <label>Posto de serviço<input name="POSTO" placeholder="Usa o posto do cadastro se vazio"></label>
+
+          <h3>Pagamento</h3>
+          <div class="linha-campos">
+            <label class="cresce">Tipo de recibo<select name="TIPO_PAGAMENTO" id="sel-tipo" required></select></label>
+            <label class="cresce">Forma de pagamento
+              <select name="FORMA_PAGAMENTO" required><option>PIX</option><option>Transferência bancária</option><option>Dinheiro</option><option>Depósito</option><option>Cartão benefício</option></select></label>
+          </div>
+          <label>Descrição do pagamento<input name="DESCRICAO" required maxlength="300" placeholder="Ex.: auxílio alimentação"></label>
+          <div class="linha-campos">
+            <label>Dias<input name="QUANTIDADE_DIAS" type="number" min="0" step="1" inputmode="numeric"></label>
+            <label>Valor por dia<input name="VALOR_DIARIO" inputmode="decimal" placeholder="0,00"></label>
+            <label class="cresce">Valor total<input name="VALOR" inputmode="decimal" placeholder="0,00" required></label>
+          </div>
+          <p class="calc" id="calc"></p>
+          <div class="linha-campos">
+            <label class="cresce">Período de referência<input name="PERIODO" required placeholder="Ex.: 05 a 13/10/2026"></label>
+            <label class="cresce">Data do pagamento<input name="DATA_PAGAMENTO" type="date" required></label>
+          </div>
+          <label>Chave PIX ou identificação da transação<input name="IDENTIFICACAO_TRANSACAO" maxlength="120"></label>
+          <label>Observações<textarea name="OBSERVACOES" rows="2" maxlength="500"></textarea></label>
+          <label>Validade do link (dias, 0 = sem prazo)<input name="VALIDADE_DIAS" type="number" min="0" max="365"></label>
+          <button class="btn azul" type="submit">GERAR RECIBO E LINK DE ASSINATURA</button>
+          <p class="erro" id="recibo-erro" role="alert"></p>
+        </form>
+        <div class="previa-wrap"><p class="rotulo-previa">Prévia do documento (A4)</p><div id="previa"></div></div>
+      </div>
+    </div>
+
+    <!-- Lista -->
+    <div class="tela" id="t-lista" hidden>
+      <div class="vidro bloco">
+        <div class="filtros">
+          <input id="fl-busca" placeholder="Pesquisa rápida: nome, CPF, matrícula ou protocolo">
+          <select id="fl-status"><option value="">Todos os status</option><option value="PENDENTE">Pendente de assinatura</option><option value="ASSINADO">Assinado</option><option value="EXPIRADO">Expirado</option><option value="CANCELADO">Cancelado</option></select>
+          <select id="fl-tipo"><option value="">Todos os tipos</option></select>
+          <label class="mini">De<input type="date" id="fl-de"></label>
+          <label class="mini">Até<input type="date" id="fl-ate"></label>
+          <button class="btn fino" id="b-atualizar">Atualizar</button>
+        </div>
+        <div class="tabela-wrap"><table class="tabela" id="tb-recibos"></table></div>
+      </div>
+    </div>
+
+    <!-- Funcionários -->
+    <div class="tela" id="t-funcionarios" hidden>
+      <div class="vidro bloco">
+        <div class="filtros">
+          <input id="ff-busca" placeholder="Buscar funcionário">
+          <button class="btn prata" id="b-add-func" data-perm="funcionario.editar">Novo funcionário</button>
+        </div>
+        <div class="tabela-wrap"><table class="tabela" id="tb-func"></table></div>
+      </div>
+    </div>
+
+    <!-- Relatórios -->
+    <div class="tela" id="t-relatorios" hidden>
+      <div class="vidro bloco">
+        <div class="filtros">
+          <select id="rl-agrup"><option value="mes">Relatório mensal</option><option value="func">Por funcionário</option><option value="tipo">Por tipo de pagamento</option></select>
+          <label class="mini">De<input type="date" id="rl-de"></label>
+          <label class="mini">Até<input type="date" id="rl-ate"></label>
+          <select id="rl-status"><option value="ASSINADO">Somente assinados</option><option value="">Todos os status</option></select>
+        </div>
+        <div class="acoes-rel">
+          <button class="btn fino" id="b-csv">Exportar CSV</button>
+          <button class="btn fino" id="b-imprimir-rel">Imprimir relatório</button>
+          <button class="btn prata" id="b-zip">Baixar PDFs assinados (ZIP)</button>
+        </div>
+        <div id="relatorio"></div>
+      </div>
+    </div>
+
+    <!-- Configurações -->
+    <div class="tela" id="t-config" hidden>
+      <div class="grade2">
+        <form class="vidro bloco" id="f-config">
+          <h3>Geral</h3>
+          <label>Endereço público do sistema (GitHub Pages)<input name="FRONTEND_URL" required placeholder="https://vegasvig.github.io/recibos/"></label>
+          <label>Validade padrão do link (dias, 0 = sem prazo)<input name="VALIDADE_DIAS" type="number" min="0" max="365"></label>
+          <label>Funcionário pode baixar o PDF assinado?<select name="FUNC_BAIXA_PDF"><option value="SIM">Sim</option><option value="NAO">Não</option></select></label>
+          <label>Por quantos dias após assinar (0 = sempre)<input name="FUNC_BAIXA_PDF_DIAS" type="number" min="0" max="365"></label>
+          <label>E-mail do RH para avisos de divergência<input name="EMAIL_RH" type="email"></label>
+          <label>Declaração de conferência<textarea name="TEXTO_DECLARACAO" rows="3"></textarea></label>
+          <label>Texto de rodapé do recibo<textarea name="TEXTO_RODAPE" rows="2"></textarea></label>
+          <h3>Tipos de recibo</h3>
+          <div id="tipos-lista" class="chips"></div>
+          <div class="linha-campos"><input id="novo-tipo" placeholder="Novo tipo" class="cresce"><button type="button" class="btn fino" id="b-add-tipo">Adicionar</button></div>
+          <button class="btn azul" type="submit">Salvar configurações</button>
+        </form>
+        <div>
+          <div class="vidro bloco"><h3>Empresas do grupo</h3><div id="empresas-lista"></div><button class="btn fino" id="b-add-emp">Adicionar empresa</button></div>
+          <div class="vidro bloco"><h3>Usuários e permissões</h3><div id="usuarios-lista"></div><button class="btn fino" id="b-add-user">Adicionar usuário</button></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- PÁGINA DO FUNCIONÁRIO -->
+<section id="v-func" class="view" hidden>
+  <div class="func-topo"><img src="assets/logo.jpg" alt="Vegas Vigilância e Segurança"><div><h1 class="titulo">Seu recibo digital</h1><p class="sub">Confira os dados abaixo antes de confirmar o recebimento.</p></div></div>
+  <div id="func-conteudo" class="func-conteudo"><div class="carregando">Carregando seu recibo…</div></div>
+</section>
+
+<div class="modal" id="modal" hidden><div class="modal-caixa vidro" role="dialog" aria-modal="true"><button class="fechar" id="modal-fechar" aria-label="Fechar">×</button><div id="modal-corpo"></div></div></div>
+<div class="aviso" id="aviso" role="status" hidden></div>
+<div class="carga" id="carga" hidden><div class="spin"></div></div>
+
+<script src="script.js"></script>
+</body>
+</html>
