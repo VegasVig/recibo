@@ -824,6 +824,8 @@ function criarPad(canvas, aoDesenhar) {
 
 /* ================= INÍCIO ================= */
 
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
 (async function iniciar() {
   const token = new URLSearchParams(location.search).get('r');
   if (token) return iniciarFuncionario(token);
