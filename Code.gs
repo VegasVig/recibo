@@ -564,14 +564,14 @@ function htmlPdf_(v, a) {
     '<img class="timb" src="' + timbrado_(v.LOGO_FILE_ID) + '">' +
     '<div class="pg"><div class="top"><div class="rz">' + e(E.RAZAO_SOCIAL) + '</div><div class="sm">CNPJ ' + e(E.CNPJ) + (E.ENDERECO ? ' &nbsp;|&nbsp; ' + e(E.ENDERECO) : '') +
     '<br>' + [E.TELEFONE, E.EMAIL].filter(Boolean).map(e).join(' &nbsp;|&nbsp; ') + '</div></div>' +
-    '<h1>RECIBO DE PAGAMENTO</h1><div class="prot">Protocolo ' + e(v.PROTOCOLO) + ' &nbsp;|&nbsp; ' + e(v.TIPO_PAGAMENTO) + '</div>' +
+    '<h1>RECIBO DE PAGAMENTO</h1><div class="prot">' + e(v.TIPO_PAGAMENTO) + '</div>' +
     '<p class="corpo">Eu, <b>' + e(v.NOME_FUNCIONARIO) + '</b>, CPF <b>' + e(v.CPF) + '</b>, declaro que recebi de <b>' + e(E.RAZAO_SOCIAL) +
     '</b> a quantia de <b>' + brl_(v.VALOR) + '</b> (' + e(v.VALOR_EXTENSO) + '), referente a ' + e(v.DESCRICAO) + '.</p>' +
     '<table class="d">' + det.map((x, i) => '<tr' + (i === det.length - 1 ? ' class="t"' : '') + '><td class="k">' + e(x[0]) + '</td><td>' + e(x[1]) + '</td></tr>').join('') + '</table>' +
     '<div class="ass">' + (a.assinatura ? '<img src="' + a.assinatura + '">' : '<div style="height:62px"></div>') + '<div class="linha">' + e(v.NOME_FUNCIONARIO) + '</div>' +
     '<div class="sm">Assinado eletronicamente em ' + dataHora + ' (horário de Brasília, registrado pelo servidor)</div></div>' +
     '<p class="rod">' + e(configMapa_().TEXTO_RODAPE) + '</p>' +
-    '<div class="aud"><b>Registro de autenticidade</b> &nbsp;|&nbsp; Protocolo ' + e(v.PROTOCOLO) + ' &nbsp;|&nbsp; ID ' + e(v.ID_RECIBO) +
+    '<div class="aud"><b>Registro de autenticidade</b> &nbsp;|&nbsp; ID do documento ' + e(v.ID_RECIBO) +
     '<br>Emitido em ' + dataBr_(v.DATA_EMISSAO, true) + ' &nbsp;|&nbsp; Assinado em ' + dataHora +
     '<br>Declaração aceita: "' + e(configMapa_().TEXTO_DECLARACAO) + '"' +
     '<br>SHA-256 do conteúdo + assinatura: ' + a.hashConteudo +

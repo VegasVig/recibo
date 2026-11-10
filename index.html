@@ -98,7 +98,11 @@
             <label class="cresce">Período de referência<input name="PERIODO" required placeholder="Ex.: 05 a 13/10/2026"></label>
             <label class="cresce">Data do pagamento<input name="DATA_PAGAMENTO" type="date" required></label>
           </div>
-          <label>Chave PIX ou identificação da transação<input name="IDENTIFICACAO_TRANSACAO" maxlength="120"></label>
+          <div class="linha-campos" id="pix-campos">
+            <label>Tipo de chave PIX<select name="PIX_TIPO"><option value="CPF">CPF</option><option value="TELEFONE">Telefone</option><option value="EMAIL">E-mail</option></select></label>
+            <label class="cresce">Chave PIX<input name="PIX_CHAVE" maxlength="100" autocomplete="off"></label>
+          </div>
+          <label id="ident-campo" hidden>Identificação da transação (opcional)<input name="IDENTIFICACAO_TRANSACAO" maxlength="120"></label>
           <label>Observações<textarea name="OBSERVACOES" rows="2" maxlength="500"></textarea></label>
           <label>Validade do link (dias, 0 = sem prazo)<input name="VALIDADE_DIAS" type="number" min="0" max="365"></label>
           <button class="btn azul" type="submit">GERAR RECIBO E LINK DE ASSINATURA</button>

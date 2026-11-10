@@ -129,7 +129,7 @@ function htmlFolha(d, o = {}) {
     <div class="fl-corpo">
       ${d.STATUS === 'CANCELADO' ? '<div style="text-align:center"><span class="marca-dagua">CANCELADO</span></div>' : ''}
       <h2>RECIBO DE PAGAMENTO</h2>
-      <div class="fl-prot">${d.PROTOCOLO ? 'Protocolo ' + esc(d.PROTOCOLO) + ' | ' : ''}${esc(d.TIPO_PAGAMENTO || '')}</div>
+      <div class="fl-prot">${esc(d.TIPO_PAGAMENTO || '')}</div>
       <p class="fl-texto">Eu, <b>${esc(d.NOME_FUNCIONARIO || '__________')}</b>, CPF <b>${esc(d.CPF || '___.___.___-__')}</b>, declaro que recebi de <b>${esc(E.RAZAO_SOCIAL || '')}</b>
         a quantia de <b>${brl(d.VALOR)}</b> (${esc(extenso(d.VALOR || 0))}), referente a ${esc(d.DESCRICAO || '__________')}.</p>
       <table class="fl-det">${det.map((x, i) => `<tr${i === det.length - 1 ? ' class="total"' : ''}><td>${esc(x[0])}</td><td>${esc(x[1])}</td></tr>`).join('')}</table>
@@ -275,12 +275,46 @@ function selecionarFunc(f) {
   S.funcSel = f;
   const fr = $('#f-recibo');
   fr.ID_FUNCIONARIO.value = f ? f.ID_FUNCIONARIO : '';
-  $('#func-sel').innerHTML = f ? `<b>${esc(f.NOME)}</b> — CPF ${esc(f.CPF)}${f.MATRICULA ? ' — Mat. ' + esc(f.MATRICULA) : ''}<br>Posto: ${esc(f.POSTO || '—')} | Celular: ${esc(f.TELEFONE || 'não informado')}` : 'Nenhum funcionário selecionado.';
+  $('#func-sel').innerHTML = f ? `<b>${esc(f.NOME)}</b> — CPF ${esc(f.CPF)}${f.MATRICULA ? ' — Mat. ' + esc(f.MATRICULA) : ''}<br>Posto: ${esc(f.POSTO || '—')} | Celular: ${esc(f.TELEFONE || 'não informado')}${pode('funcionario.editar') ? '<br><button type="button" class="btn fino" id="b-editar-sel" style="margin-top:8px;padding:6px 12px">Editar ficha</button>' : ''}` : 'Nenhum funcionário selecionado.';
   if (f) {
     if (!fr.POSTO.value) fr.POSTO.placeholder = f.POSTO || 'Posto de serviço';
-    if (!fr.IDENTIFICACAO_TRANSACAO.value && fr.FORMA_PAGAMENTO.value === 'PIX') fr.IDENTIFICACAO_TRANSACAO.value = 'Chave (CPF) ' + f.CPF;
   }
+  preencherChavePix(true);
   renderPrevia();
+}
+
+$('#func-sel').addEventListener('click', e => {
+  if (e.target.id === 'b-editar-sel' && S.funcSel) formFuncionario(S.funcSel, f => selecionarFunc(f));
+});
+
+const ROTULO_PIX = { CPF: 'CPF', TELEFONE: 'Telefone', EMAIL: 'E-mail' };
+
+function formataTel(t) {
+  const d = digitos(t).replace(/^55(?=\d{10,11}$)/, '');
+  return d.length === 11 ? d.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3') : d.length === 10 ? d.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3') : String(t || '');
+}
+
+function preencherChavePix(forcar) {
+  const f = $('#f-recibo'), func = S.funcSel;
+  const pix = f.FORMA_PAGAMENTO.value === 'PIX';
+  $('#pix-campos').hidden = !pix;
+  $('#ident-campo').hidden = pix;
+  if (!pix) return;
+  if (!forcar && f.PIX_CHAVE.value && !f.PIX_CHAVE.dataset.auto) return;
+  const tipo = f.PIX_TIPO.value;
+  const valor = !func ? '' : tipo === 'CPF' ? func.CPF : tipo === 'TELEFONE' ? (func.TELEFONE ? formataTel(func.TELEFONE) : '') : (func.EMAIL || '');
+  f.PIX_CHAVE.value = valor;
+  f.PIX_CHAVE.dataset.auto = '1';
+  f.PIX_CHAVE.placeholder = func && !valor ? `Funcionário sem ${ROTULO_PIX[tipo].toLowerCase()} cadastrado — digite a chave` : '';
+}
+
+function validaChavePix(tipo, chave) {
+  const d = digitos(chave);
+  if (!chave) return 'Informe a chave PIX.';
+  if (tipo === 'CPF' && d.length !== 11) return 'Chave PIX CPF deve ter 11 dígitos.';
+  if (tipo === 'TELEFONE' && !(d.length === 10 || d.length === 11 || ((d.length === 12 || d.length === 13) && d.startsWith('55')))) return 'Chave PIX telefone deve ter DDD + número.';
+  if (tipo === 'EMAIL' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(chave)) return 'Chave PIX e-mail inválida.';
+  return '';
 }
 
 $('#busca-func').addEventListener('input', e => {
@@ -304,11 +338,9 @@ fr.addEventListener('input', e => {
   if (['QUANTIDADE_DIAS', 'VALOR_DIARIO'].includes(e.target.name)) calcular();
   renderPrevia();
 });
-fr.FORMA_PAGAMENTO.addEventListener('change', () => {
-  if (fr.FORMA_PAGAMENTO.value !== 'PIX' && /^Chave \(CPF\)/.test(fr.IDENTIFICACAO_TRANSACAO.value)) fr.IDENTIFICACAO_TRANSACAO.value = '';
-  if (fr.FORMA_PAGAMENTO.value === 'PIX' && !fr.IDENTIFICACAO_TRANSACAO.value && S.funcSel) fr.IDENTIFICACAO_TRANSACAO.value = 'Chave (CPF) ' + S.funcSel.CPF;
-  renderPrevia();
-});
+fr.FORMA_PAGAMENTO.addEventListener('change', () => { preencherChavePix(false); renderPrevia(); });
+fr.PIX_TIPO.addEventListener('change', () => { preencherChavePix(true); renderPrevia(); });
+fr.PIX_CHAVE.addEventListener('input', () => delete fr.PIX_CHAVE.dataset.auto);
 fr.ID_EMPRESA.addEventListener('change', renderPrevia);
 
 function calcular() {
@@ -333,7 +365,10 @@ function dadosForm() {
     TIPO_PAGAMENTO: fr.TIPO_PAGAMENTO.value, DESCRICAO: fr.DESCRICAO.value.trim(), VALOR: dinheiro(fr.VALOR.value),
     VALOR_DIARIO: dias > 0 ? dinheiro(fr.VALOR_DIARIO.value) : '', QUANTIDADE_DIAS: dias > 0 ? dias : '',
     PERIODO: fr.PERIODO.value.trim(), DATA_PAGAMENTO: fr.DATA_PAGAMENTO.value ? fr.DATA_PAGAMENTO.value + 'T12:00:00' : '',
-    FORMA_PAGAMENTO: fr.FORMA_PAGAMENTO.value, IDENTIFICACAO_TRANSACAO: fr.IDENTIFICACAO_TRANSACAO.value.trim(), OBSERVACOES: fr.OBSERVACOES.value.trim()
+    FORMA_PAGAMENTO: fr.FORMA_PAGAMENTO.value, IDENTIFICACAO_TRANSACAO: fr.FORMA_PAGAMENTO.value === 'PIX'
+      ? (fr.PIX_CHAVE.value.trim() ? `Chave ${ROTULO_PIX[fr.PIX_TIPO.value]}: ${fr.PIX_CHAVE.value.trim()}` : '')
+      : fr.IDENTIFICACAO_TRANSACAO.value.trim(),
+    OBSERVACOES: fr.OBSERVACOES.value.trim()
   };
 }
 
@@ -357,6 +392,7 @@ fr.addEventListener('submit', async e => {
   if (!d.PERIODO) falta.push('período');
   if (!fr.DATA_PAGAMENTO.value) falta.push('data do pagamento');
   if (falta.length) { erro.textContent = 'Preencha: ' + falta.join(', ') + '.'; return; }
+  if (fr.FORMA_PAGAMENTO.value === 'PIX') { const ep = validaChavePix(fr.PIX_TIPO.value, fr.PIX_CHAVE.value.trim()); if (ep) { erro.textContent = ep; return; } }
   if (!confirm(`Confirmar emissão do recibo de ${brl(d.VALOR)} para ${d.NOME_FUNCIONARIO}?`)) return;
   try {
     const r = await api('recibo.criar', { recibo: {
@@ -372,8 +408,9 @@ fr.addEventListener('submit', async e => {
 });
 
 function limparForm() {
-  ['DESCRICAO', 'VALOR', 'VALOR_DIARIO', 'QUANTIDADE_DIAS', 'PERIODO', 'IDENTIFICACAO_TRANSACAO', 'OBSERVACOES', 'POSTO'].forEach(n => (fr[n].value = ''));
+  ['DESCRICAO', 'VALOR', 'VALOR_DIARIO', 'QUANTIDADE_DIAS', 'PERIODO', 'IDENTIFICACAO_TRANSACAO', 'PIX_CHAVE', 'OBSERVACOES', 'POSTO'].forEach(n => (fr[n].value = ''));
   fr.VALOR.readOnly = false;
+  fr.PIX_TIPO.value = 'CPF';
   $('#calc').textContent = '';
   selecionarFunc(null);
 }
