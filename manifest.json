@@ -6,7 +6,7 @@
   "start_url": "/recibo/",
   "scope": "/recibo/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone"],
+  "display_override": ["standalone"],
   "orientation": "any",
   "background_color": "#08090C",
   "theme_color": "#08090C",
